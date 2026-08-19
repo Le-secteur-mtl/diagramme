@@ -1,4 +1,4 @@
-# Éditeur de diagrammes — V0.1.1
+# Éditeur de diagrammes — V0.1.3
 
 Mini application web générique pour créer et modifier des diagrammes. Aucune donnée métier n'est codée dans l'application : tous les textes, couleurs, connexions et fichiers sont créés par l'utilisateur.
 
@@ -22,7 +22,7 @@ Mini application web générique pour créer et modifier des diagrammes. Aucune 
 
 **Important : `package.json`, `index.html`, `vercel.json` et le dossier `src` doivent être directement à la racine du dépôt GitHub.**
 
-La V0.1.1 est fournie dans une archive aplatie : quand vous ouvrez le ZIP, ces fichiers sont immédiatement visibles, sans dossier parent supplémentaire.
+La V0.1.3 est fournie dans une archive aplatie : quand vous ouvrez le ZIP, ces fichiers sont immédiatement visibles, sans dossier parent supplémentaire.
 
 1. Créer un dépôt GitHub vide.
 2. Téléverser tout le contenu du ZIP à la racine du dépôt.
@@ -57,3 +57,17 @@ Le résultat de production est créé dans `dist/`.
 ## Données
 
 La sauvegarde automatique reste dans le navigateur de l'utilisateur. Pour transférer un diagramme vers un autre ordinateur ou navigateur, utiliser **Exporter**, puis **Importer**.
+
+
+## V0.1.3
+
+- Correction du bouton **Nouveau**.
+- Remplacement du dialogue navigateur `window.confirm()` par une confirmation intégrée à l’application, plus fiable dans les aperçus et déploiements Vercel.
+- Retour visuel immédiat après la création d’un nouveau diagramme.
+
+
+## V0.1.3
+
+- Ajout d'un bouton visible « + Ajouter un bloc » dans la barre du haut.
+- Le bouton crée immédiatement un bloc au centre du canevas.
+- Le double-clic sur le canevas reste disponible comme raccourci.

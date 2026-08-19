@@ -54,6 +54,7 @@ function DiagramEditor() {
   const [isReady, setIsReady] = useState(false);
   const [saveState, setSaveState] = useState('Prêt');
   const [contextMenu, setContextMenu] = useState(null);
+  const [showNewProjectConfirm, setShowNewProjectConfirm] = useState(false);
   const importInputRef = useRef(null);
   const saveTimerRef = useRef(null);
   const { screenToFlowPosition, fitView } = useReactFlow();
@@ -140,6 +141,22 @@ function DiagramEditor() {
     addNodeAt(position);
   }, [screenToFlowPosition, addNodeAt]);
 
+  const addNodeFromToolbar = useCallback(() => {
+    const canvas = document.querySelector('.canvas-wrap');
+    if (!canvas) {
+      addNodeAt({ x: 80, y: 80 });
+      return;
+    }
+
+    const rect = canvas.getBoundingClientRect();
+    const position = screenToFlowPosition({
+      x: rect.left + rect.width / 2,
+      y: rect.top + rect.height / 2,
+    });
+
+    addNodeAt(position);
+  }, [screenToFlowPosition, addNodeAt]);
+
   const updateSelectedNode = useCallback((patch) => {
     if (!selectedNodeId) return;
     setNodes((current) => current.map((node) => (
@@ -204,19 +221,33 @@ function DiagramEditor() {
     });
   }, []);
 
-  const createNewProject = async () => {
-    if ((nodes.length || edges.length) && !window.confirm('Créer un nouveau diagramme vide ?')) return;
+  const resetToNewProject = useCallback(async () => {
     setNodes([]);
     setEdges([]);
     setSelectedNodeId(null);
     setProjectName('Sans titre');
     setContextMenu(null);
+    setShowNewProjectConfirm(false);
+    setSaveState('Nouveau diagramme');
+
     try {
       await clearProject();
     } catch {
       // L'état vide sera de toute façon réenregistré par l'autosauvegarde.
     }
-  };
+  }, []);
+
+  const createNewProject = useCallback(() => {
+    setContextMenu(null);
+
+    // Évite window.confirm(): certains aperçus / iframes bloquent les dialogues natifs.
+    if (nodes.length || edges.length) {
+      setShowNewProjectConfirm(true);
+      return;
+    }
+
+    resetToNewProject();
+  }, [nodes.length, edges.length, resetToNewProject]);
 
   const exportProject = () => {
     const project = {
@@ -309,6 +340,7 @@ function DiagramEditor() {
         />
 
         <div className="topbar__actions">
+          <button className="toolbar-button add-block-button" onClick={addNodeFromToolbar}>＋ Ajouter un bloc</button>
           <button className="toolbar-button" onClick={createNewProject}>Nouveau</button>
           <button className="toolbar-button" onClick={() => importInputRef.current?.click()}>Importer</button>
           <button className="toolbar-button primary" onClick={exportProject}>Exporter</button>
@@ -326,8 +358,8 @@ function DiagramEditor() {
         <section className="canvas-wrap">
           {nodes.length === 0 && (
             <div className="empty-hint" aria-hidden="true">
-              <strong>Double-clique pour créer ton premier bloc</strong>
-              <span>Puis relie les blocs en tirant d'un point vers un autre.</span>
+              <strong>Clique sur « Ajouter un bloc » pour commencer</strong>
+              <span>Tu peux aussi double-cliquer n'importe où dans le canevas.</span>
             </div>
           )}
 
@@ -370,6 +402,26 @@ function DiagramEditor() {
           onAddAfter={addAfterSelected}
         />
       </main>
+
+
+      {showNewProjectConfirm && (
+        <div className="modal-backdrop" role="presentation" onMouseDown={() => setShowNewProjectConfirm(false)}>
+          <div
+            className="confirm-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="new-project-title"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <h2 id="new-project-title">Nouveau diagramme</h2>
+            <p>Créer un nouveau diagramme vide? Le diagramme actuel restera disponible seulement si tu l'as exporté.</p>
+            <div className="confirm-dialog__actions">
+              <button className="toolbar-button" onClick={() => setShowNewProjectConfirm(false)}>Annuler</button>
+              <button className="danger-button" onClick={resetToNewProject}>Créer le nouveau</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {contextMenu && (
         <div
